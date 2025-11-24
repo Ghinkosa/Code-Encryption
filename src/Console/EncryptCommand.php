@@ -21,34 +21,27 @@ class EncryptCommand extends Command
         $paths  = config('codeprotect.paths', ['app/']);
         $suffix = config('codeprotect.enc_suffix', '.galo');
 
-        // Absolute base path
-        $base = base_path() . DIRECTORY_SEPARATOR;
+        // Base path
+        $base = rtrim(base_path(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-        // 🔥 NEW FIX — Support all your new skip directories
+        // Directories to skip
         $skipDirs = [
             'vendor/',
             'storage/',
             'bootstrap/',
             'config/',
             'tests/',
-            'routes/',        // added
-            'database/',      // added
-            'resources/',     // added
         ];
 
-        // 🔥 NEW FIX — Include your new exact files
+        // Exact files to skip
         $skipFiles = [
             'app/Console/Kernel.php',
             'app/Http/Kernel.php',
             'app/Providers/AppServiceProvider.php',
             'bootstrap/app.php',
-            'routes/web.php',           // added
-            'routes/api.php',           // added
-            'config/app.php',           // added
         ];
 
         foreach ($paths as $p) {
-
             $dir = base_path($p);
             if (!is_dir($dir)) {
                 $this->warn("Path not found: $dir");
@@ -60,33 +53,34 @@ class EncryptCommand extends Command
             );
 
             foreach ($rii as $file) {
-
                 if ($file->isDir()) continue;
                 if ($file->getExtension() !== 'php') continue;
 
                 $path = $file->getPathname();
 
-                // Convert absolute file path → relative (important!)
+                // Convert absolute path to relative path
                 $relative = str_replace($base, '', $path);
+                $relative = str_replace('\\', '/', $relative); // normalize slashes
 
                 // Skip directories
                 foreach ($skipDirs as $dirSkip) {
-                    if (str_starts_with($relative, trim($dirSkip, '/').'/')) {
-                        continue 2;
+                    $dirSkip = rtrim($dirSkip, '/') . '/';
+                    if (str_starts_with($relative, $dirSkip)) {
+                        continue 2; // skip this file
                     }
                 }
 
                 // Skip exact files
-                if (in_array($relative, $skipFiles, true)) {
+                if (in_array($relative, $skipFiles)) {
                     continue;
                 }
 
-                // Never encrypt this package itself
+                // Do not encrypt this package itself
                 if (str_contains($relative, 'laravel-code-protector')) {
                     continue;
                 }
 
-                // Skip already encrypted files
+                // Already encrypted?
                 if (file_exists($path . $suffix)) {
                     $this->info("Already encrypted (skipping): $relative");
                     continue;
