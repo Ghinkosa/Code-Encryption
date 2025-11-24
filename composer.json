@@ -1,5 +1,5 @@
 {
-    "name": "galata/laravel-code-protector",
+    "name": "galata-eth/laravel-code-protector",
     "description": "Laravel code protector: encrypt PHP files and load decrypted code at runtime (no Blade).",
     "type": "library",
     "license": "MIT",
@@ -22,7 +22,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Galata\\CodeProtect\\CodeProtectorServiceProvider"
+                "GalataEth\\CodeProtect\\CodeProtectorServiceProvider"
             ]
         }
     }
