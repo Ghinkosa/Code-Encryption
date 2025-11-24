@@ -1,9 +1,9 @@
 <?php
 
-namespace Galata\CodeProtect\Console;
+namespace GalataEth\CodeProtect\Console;
 
 use Illuminate\Console\Command;
-use Galata\CodeProtect\Encryptor;
+use GalataEth\CodeProtect\Encryptor;
 
 class EncryptCommand extends Command
 {

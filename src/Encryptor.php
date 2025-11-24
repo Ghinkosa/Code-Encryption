@@ -1,6 +1,6 @@
 <?php
 
-namespace Galata\CodeProtect;
+namespace GalataEth\CodeProtect;
 
 class Encryptor
 {
@@ -30,10 +30,10 @@ class Encryptor
         $stub = <<<'PHP'
 <?php
 // Encrypted stub - DO NOT EDIT
-if (!class_exists('\Galata\CodeProtect\Loader', false)) {
+if (!class_exists('\GalataEth\CodeProtect\Loader', false)) {
     @include_once __DIR__ . '/../../vendor/autoload.php';
 }
-\Galata\CodeProtect\Loader::loadFromStub(__FILE__);
+\GalataEth\CodeProtect\Loader::loadFromStub(__FILE__);
 PHP;
 
         file_put_contents($filePath, $stub);

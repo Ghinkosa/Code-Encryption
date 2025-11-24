@@ -1,9 +1,9 @@
 <?php
 
-namespace Galata\CodeProtect;
+namespace GalataEth\CodeProtect;
 
 use Illuminate\Support\ServiceProvider;
-use Galata\CodeProtect\Console\EncryptCommand;
+use GalataEth\CodeProtect\Console\EncryptCommand;
 
 class CodeProtectorServiceProvider extends ServiceProvider
 {

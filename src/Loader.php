@@ -1,6 +1,6 @@
 <?php
 
-namespace Galata\CodeProtect;
+namespace GalataEth\CodeProtect;
 
 class Loader
 {
