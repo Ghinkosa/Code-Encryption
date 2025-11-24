@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Laravel Code Protector (no Blade)
 
 This package encrypts PHP files under configured paths and replaces original files with a small stub that triggers runtime decryption.
@@ -19,3 +20,7 @@ This package encrypts PHP files under configured paths and replaces original fil
 
 - This package purposely skips Blade view encryption.
 - Keep backups of originals before encrypting.
+=======
+# Code-Encryption
+Laravel code Encription
+>>>>>>> 446c1b62b8485c1f9c00846054b5000934b7df85
