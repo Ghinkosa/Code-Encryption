@@ -15,16 +15,13 @@ class CodeProtectorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                EncryptCommand::class,
-            ]);
+            $this->commands([EncryptCommand::class]);
 
             $this->publishes([
                 __DIR__ . '/../config/codeprotect.php' => config_path('codeprotect.php'),
             ], 'config');
         }
 
-        // Register fallback autoloader - safe to always register
         Loader::register();
     }
 }
