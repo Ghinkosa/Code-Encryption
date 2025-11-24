@@ -7,13 +7,13 @@ class Loader
     /**
      * Called from stub files. $stubPath is the path to the original stub file.
      * This method finds the corresponding encrypted payload (stubPath + suffix),
-     * decrypts it and evaluates PHP code in memory.
+     * derives the internal key and evaluates PHP code in memory.
      *
      * The stub itself is left in place so Composer autoload works.
      */
     public static function loadFromStub(string $stubPath): void
     {
-        $suffix = config('codeprotect.enc_suffix', '.enc');
+        $suffix = config('codeprotect.enc_suffix', '.galo');
         $encPath = $stubPath . $suffix;
         if (!file_exists($encPath)) {
             throw new \RuntimeException("Encrypted file not found: {$encPath}");
@@ -24,13 +24,10 @@ class Loader
             throw new \RuntimeException('Encryption key not configured (codeprotect.key)');
         }
 
-        // If APP_KEY is base64:..., decode to raw bytes
-        if (str_starts_with($key, 'base64:')) {
-            $key = base64_decode(substr($key, 7));
-        }
+        $encKey = Encryptor::deriveKey($key);
 
         // Decrypt and evaluate
-        $php = Encryptor::decryptFile($encPath, $key);
+        $php = Encryptor::decryptFile($encPath, $encKey);
         eval('?>' . $php);
     }
 
@@ -46,7 +43,7 @@ class Loader
     public static function autoload(string $class): void
     {
         $paths = config('codeprotect.paths', ['app/']);
-        $suffix = config('codeprotect.enc_suffix', '.enc');
+        $suffix = config('codeprotect.enc_suffix', '.galo');
 
         $classPath = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
         foreach ($paths as $p) {
@@ -60,10 +57,8 @@ class Loader
             $enc = base_path($p . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php' . $suffix);
             if (file_exists($enc)) {
                 $key = config('codeprotect.key');
-                if (str_starts_with($key, 'base64:')) {
-                    $key = base64_decode(substr($key, 7));
-                }
-                $php = Encryptor::decryptFile($enc, $key);
+                $encKey = Encryptor::deriveKey($key);
+                $php = Encryptor::decryptFile($enc, $encKey);
                 eval('?>' . $php);
                 return;
             }

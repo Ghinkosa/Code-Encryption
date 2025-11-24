@@ -5,8 +5,8 @@ This package encrypts PHP files under configured paths and replaces original fil
 
 **How it works**
 
-- `php artisan code:encrypt` encrypts files and writes `.enc` payloads beside originals and replaces original `.php` with a small stub.
-- At runtime the stub calls `Galata\CodeProtect\Loader::loadFromStub(__FILE__)`, which decrypts the `.enc` file and `eval()`s the PHP code in memory (no persistent decrypted files by default).
+- `php artisan code:encrypt` encrypts files and writes `.galo` payloads beside originals and replaces original `.php` with a small stub.
+- At runtime the stub calls `Galata\CodeProtect\Loader::loadFromStub(__FILE__)`, which decrypts the `.galo` file and `eval()`s the PHP code in memory (no persistent decrypted files by default).
 
 **Install**
 

@@ -18,13 +18,8 @@ class EncryptCommand extends Command
             return 1;
         }
 
-        // decode base64 if provided
-        if (str_starts_with($key, 'base64:')) {
-            $key = base64_decode(substr($key, 7));
-        }
-
         $paths = config('codeprotect.paths', ['app/']);
-        $suffix = config('codeprotect.enc_suffix', '.enc');
+        $suffix = config('codeprotect.enc_suffix', '.galo');
 
         foreach ($paths as $p) {
             $dir = base_path($p);
