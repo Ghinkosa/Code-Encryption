@@ -18,8 +18,27 @@ class EncryptCommand extends Command
             return 1;
         }
 
-        $paths = config('codeprotect.paths', ['app/']);
+        $paths  = config('codeprotect.paths', ['app/']);
         $suffix = config('codeprotect.enc_suffix', '.galo');
+
+        // ❗ Absolute base path
+        $base = base_path() . DIRECTORY_SEPARATOR;
+
+        // ❗ FIXED absolute → relative skip lists
+        $skipDirs = [
+            'vendor/',
+            'storage/',
+            'bootstrap/',
+            'config/',
+            'tests/',
+        ];
+
+        $skipFiles = [
+            'app/Console/Kernel.php',
+            'app/Http/Kernel.php',
+            'app/Providers/AppServiceProvider.php',
+            'bootstrap/app.php',
+        ];
 
         foreach ($paths as $p) {
             $dir = base_path($p);
@@ -28,54 +47,45 @@ class EncryptCommand extends Command
                 continue;
             }
 
-            $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS));
+            $rii = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+
             foreach ($rii as $file) {
                 if ($file->isDir()) continue;
                 if ($file->getExtension() !== 'php') continue;
 
                 $path = $file->getPathname();
 
-                // skip vendor, storage, bootstrap, config, tests
-                $skipPatterns = [
+                // Convert absolute path → relative path (for accurate matching)
+                $relative = str_replace($base, '', $path);
 
-                    // existing directory-based skips
-                    'vendor' . DIRECTORY_SEPARATOR,
-                    'storage' . DIRECTORY_SEPARATOR,
-                    'bootstrap' . DIRECTORY_SEPARATOR,
-                    'config' . DIRECTORY_SEPARATOR,
-                    'tests' . DIRECTORY_SEPARATOR,
-
-                    // ➕ your additional file exclusions
-                    'app' . DIRECTORY_SEPARATOR . 'Console' . DIRECTORY_SEPARATOR . 'Kernel.php',
-                    'app' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Kernel.php',
-                    'app' . DIRECTORY_SEPARATOR . 'Providers' . DIRECTORY_SEPARATOR . 'AppServiceProvider.php',
-                    'bootstrap' . DIRECTORY_SEPARATOR . 'app.php',
-                ];
-
-                $skip = false;
-                foreach ($skipPatterns as $pat) {
-                    if (str_contains($path, $pat)) { $skip = true; break; }
+                // Skip directories
+                foreach ($skipDirs as $dirSkip) {
+                    if (str_starts_with($relative, $dirSkip)) {
+                        continue 2; // skip this file
+                    }
                 }
-                if ($skip) continue;
 
-                // do not encrypt this package files
-                if (str_contains($path, 'laravel-code-protector')) continue;
-
-                // already encrypted stub? check for suffix file
-                $enc = $path . $suffix;
-                if (file_exists($enc)) {
-                    $this->info("Already encrypted (skipping): $path");
+                // Skip exact files
+                if (in_array($relative, $skipFiles)) {
                     continue;
                 }
 
-                // encrypt
-                Encryptor::encryptFile($path, $key, $suffix);
-                $this->info("Encrypted: $path");
-
-                if ($this->option('delete-original')) {
-                    // if user chose, remove stub and create a tiny loader that still triggers (not recommended)
-                    // for safety we won't delete by default
+                // Do not encrypt this package itself
+                if (str_contains($relative, 'laravel-code-protector')) {
+                    continue;
                 }
+
+                // Already encrypted?
+                if (file_exists($path . $suffix)) {
+                    $this->info("Already encrypted (skipping): $relative");
+                    continue;
+                }
+
+                // Encrypt
+                Encryptor::encryptFile($path, $key, $suffix);
+                $this->info("Encrypted: $relative");
             }
         }
 
