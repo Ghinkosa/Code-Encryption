@@ -1,0 +1,21 @@
+{
+    "name": "galata/laravel-code-protector",
+    "description": "Laravel code protector: encrypt PHP files and load decrypted code at runtime (no Blade).",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Galata\\CodeProtect\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "ext-openssl": "*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Galata\\CodeProtect\\CodeProtectorServiceProvider"
+            ]
+        }
+    }
+}
