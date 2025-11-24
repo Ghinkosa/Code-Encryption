@@ -36,7 +36,22 @@ class EncryptCommand extends Command
                 $path = $file->getPathname();
 
                 // skip vendor, storage, bootstrap, config, tests
-                $skipPatterns = ['vendor' . DIRECTORY_SEPARATOR, 'storage' . DIRECTORY_SEPARATOR, 'bootstrap' . DIRECTORY_SEPARATOR, 'config' . DIRECTORY_SEPARATOR, 'tests' . DIRECTORY_SEPARATOR];
+                $skipPatterns = [
+
+                    // existing directory-based skips
+                    'vendor' . DIRECTORY_SEPARATOR,
+                    'storage' . DIRECTORY_SEPARATOR,
+                    'bootstrap' . DIRECTORY_SEPARATOR,
+                    'config' . DIRECTORY_SEPARATOR,
+                    'tests' . DIRECTORY_SEPARATOR,
+
+                    // ➕ your additional file exclusions
+                    'app' . DIRECTORY_SEPARATOR . 'Console' . DIRECTORY_SEPARATOR . 'Kernel.php',
+                    'app' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Kernel.php',
+                    'app' . DIRECTORY_SEPARATOR . 'Providers' . DIRECTORY_SEPARATOR . 'AppServiceProvider.php',
+                    'bootstrap' . DIRECTORY_SEPARATOR . 'app.php',
+                ];
+
                 $skip = false;
                 foreach ($skipPatterns as $pat) {
                     if (str_contains($path, $pat)) { $skip = true; break; }
