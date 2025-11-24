@@ -5,8 +5,8 @@ namespace GalataEth\CodeProtect;
 class Loader
 {
     /**
-     * Called from stub files.
-     * @param string $stubPath Path to the stub file
+     * Called from stub files. $stubPath is the path to the stub file.
+     * Finds the encrypted payload and evaluates it.
      */
     public static function loadFromStub(string $stubPath): void
     {
@@ -24,14 +24,13 @@ class Loader
 
         $encKey = Encryptor::deriveKey($key);
 
-        // Decrypt and eval in memory
         $php = Encryptor::decryptFile($encPath, $encKey);
         eval('?>' . $php);
     }
 
     /**
-     * SPL autoloader fallback for classes.
-     * Tries to require stub first, or decrypt & eval encrypted files.
+     * Register a fallback autoloader.
+     * Tries to decrypt classes if needed.
      */
     public static function register(): void
     {
@@ -43,54 +42,19 @@ class Loader
         $paths = config('codeprotect.paths', ['app/']);
         $suffix = config('codeprotect.enc_suffix', '.galo');
 
-        $base = rtrim(base_path(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-
-        // Files/directories to skip
-        $skipDirs = [
-            'vendor/',
-            'storage/',
-            'bootstrap/',
-            'config/',
-            'tests/',
-        ];
-
-        $skipFiles = [
-            'app/Console/Kernel.php',
-            'app/Http/Kernel.php',
-            'app/Providers/AppServiceProvider.php',
-            'bootstrap/app.php',
-        ];
-
-        $classPath = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
+        $classPath = str_replace('\\', '/', $class) . '.php';
 
         foreach ($paths as $p) {
-            $fullStub = base_path($p . $classPath);
+            $fullPath = base_path($p . $classPath);
 
-            // Convert absolute path to relative
-            $relative = str_replace($base, '', $fullStub);
-            $relative = str_replace('\\', '/', $relative);
-
-            // Skip directories
-            foreach ($skipDirs as $dirSkip) {
-                $dirSkip = rtrim($dirSkip, '/') . '/';
-                if (str_starts_with($relative, $dirSkip)) {
-                    return; // skip autoloading
-                }
-            }
-
-            // Skip exact files
-            if (in_array($relative, $skipFiles)) {
-                return; // skip autoloading
-            }
-
-            // If stub exists, require it (stub will call loadFromStub)
-            if (file_exists($fullStub)) {
-                require_once $fullStub;
+            // Require stub if exists
+            if (file_exists($fullPath)) {
+                require_once $fullPath;
                 return;
             }
 
-            // If encrypted file exists without stub, decrypt & eval
-            $enc = $fullStub . $suffix;
+            // Directly decrypt & eval if only encrypted file exists
+            $enc = base_path($p . $classPath . $suffix);
             if (file_exists($enc)) {
                 $key = config('codeprotect.key');
                 $encKey = Encryptor::deriveKey($key);
